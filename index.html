@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Centinela Ambiental-HN</title>
+<meta name="description" content="Reporta daños ambientales en Honduras, incluso sin conexión a internet.">
+<meta name="theme-color" content="#0d3822">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Centinela HN">
+<style>
+  :root {
+    --verde-oscuro: #0d3822;
+    --verde: #1B6B3A;
+    --verde-claro: #4ade80;
+    --gris: #4a5568;
+    --fondo: #f5f7f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--fondo);
+    color: #1a202c;
+    padding-bottom: 40px;
+  }
+  header {
+    background: var(--verde-oscuro);
+    color: white;
+    padding: 20px 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header img { width: 48px; height: 48px; border-radius: 8px; }
+  header h1 { font-size: 1.3rem; margin: 0; }
+  header p { margin: 2px 0 0; font-size: 0.8rem; opacity: 0.85; }
+
+  #status-bar {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    text-align: center;
+    font-weight: 600;
+  }
+  #status-bar.online { background: #dcfce7; color: #166534; }
+  #status-bar.offline { background: #fef3c7; color: #92400e; }
+
+  main { max-width: 560px; margin: 0 auto; padding: 16px; }
+
+  .card {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .card h2 { font-size: 1rem; margin: 0 0 12px; color: var(--verde-oscuro); }
+
+  label { display: block; font-weight: 600; font-size: 0.85rem; margin: 14px 0 6px; }
+  label:first-child { margin-top: 0; }
+  input[type="text"], input[type="date"], input[type="number"], select, textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: #fff;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  .hint { font-size: 0.75rem; color: var(--gris); margin-top: 4px; }
+
+  .radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+    font-size: 0.9rem;
+    margin: 8px 0;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .radio-group input { accent-color: var(--verde); width: 18px; height: 18px; flex-shrink: 0; }
+  .radio-group label.checked { border-color: var(--verde-claro); background: #f0fdf4; }
+
+  #foto-preview { max-width: 100%; border-radius: 8px; margin-top: 10px; display: none; }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #btn-ubicacion { background: #eef2ff; color: #3730a3; margin-bottom: 6px; }
+  #btn-guardar { background: var(--verde); color: white; margin-top: 10px; }
+  #btn-guardar:disabled { background: #9ca3af; }
+
+  #resultado {
+    display: none;
+    text-align: center;
+    padding: 22px;
+  }
+  #resultado.show { display: block; }
+  #resultado .icono { font-size: 3rem; }
+  #resultado h2 { color: var(--verde-oscuro); margin: 10px 0; }
+  #resultado .acta { font-weight: 700; font-size: 1.1rem; }
+  #btn-nuevo { background: var(--verde-oscuro); color: white; margin-top: 18px; }
+
+  #pendientes-info {
+    font-size: 0.8rem;
+    text-align: center;
+    color: var(--gris);
+    margin-top: 10px;
+  }
+
+  .error { color: #b91c1c; font-size: 0.85rem; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="icons/icon-192.png" alt="Centinela Ambiental-HN">
+  <div>
+    <h1>Centinela Ambiental-HN</h1>
+    <p>Reporta un daño ambiental — sin necesidad de dar tu nombre</p>
+  </div>
+</header>
+
+<div id="status-bar"></div>
+
+<main>
+
+  <form id="form-hallazgo">
+    <div class="card">
+      <h2>📍 ¿Dónde ocurrió?</h2>
+
+      <label for="nombre_sitio">Nombre del sitio</label>
+      <input type="text" id="nombre_sitio" placeholder="Ej: Finca La Esperanza, Km 12..." required>
+
+      <label for="departamento">Departamento</label>
+      <select id="departamento" required></select>
+
+      <button type="button" id="btn-ubicacion">📡 Usar mi ubicación actual (GPS)</button>
+      <div class="hint" id="ubicacion-estado">No se ha capturado ubicación GPS todavía (opcional, pero recomendado).</div>
+    </div>
+
+    <div class="card">
+      <h2>🌳 ¿Qué pasó?</h2>
+
+      <label for="pilar">Tipo de daño</label>
+      <select id="pilar" required></select>
+
+      <label for="descripcion">Descríbelo con tus propias palabras</label>
+      <textarea id="descripcion" required placeholder="¿Qué observaste?"></textarea>
+
+      <label for="foto">Foto del hallazgo (opcional)</label>
+      <input type="file" id="foto" accept="image/*" capture="environment">
+      <img id="foto-preview" alt="Vista previa">
+    </div>
+
+    <div class="card">
+      <h2>⚖️ Gravedad del daño</h2>
+
+      <label>¿Qué tan extenso es el área afectada?</label>
+      <div class="radio-group" id="grupo-extension"></div>
+
+      <label>¿El daño se puede revertir con el tiempo?</label>
+      <div class="radio-group" id="grupo-reversibilidad"></div>
+
+      <label>¿Involucra un área protegida o especie protegida?</label>
+      <div class="radio-group" id="grupo-area"></div>
+
+      <label>¿Ya existían reportes previos en esta zona?</label>
+      <div class="radio-group" id="grupo-reincidencia"></div>
+    </div>
+
+    <div class="card">
+      <h2>🕵️ Tu identidad</h2>
+      <label for="alias">Alias (opcional — puedes dejarlo como "Anónimo")</label>
+      <input type="text" id="alias" placeholder="Anónimo" value="Anónimo">
+      <div class="hint">No pedimos tu nombre real, cédula, ni ningún dato que te identifique.</div>
+    </div>
+
+    <div id="form-error" class="error"></div>
+    <button type="submit" id="btn-guardar">✅ Guardar Reporte</button>
+    <div id="pendientes-info"></div>
+  </form>
+
+  <div id="resultado" class="card">
+    <div class="icono">✅</div>
+    <h2 id="resultado-titulo">Reporte guardado</h2>
+    <p id="resultado-mensaje"></p>
+    <p class="acta" id="resultado-acta"></p>
+    <button id="btn-nuevo">Registrar otro hallazgo</button>
+  </div>
+
+</main>
+
+<script type="module" src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js').catch(console.error);
+    });
+  }
+</script>
+</body>
+</html>
