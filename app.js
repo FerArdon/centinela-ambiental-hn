@@ -349,7 +349,7 @@ async function cargarMapa() {
       const fotos = obtenerFotos(r);
       const fotosHtml = fotos.length
         ? `<div style="display:flex;gap:4px;margin-top:6px;">` +
-          fotos.map((f) => `<img src="${f}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;">`).join("") +
+          fotos.map((f) => `<img src="${f}" class="foto-miniatura" style="width:60px;height:60px;object-fit:cover;border-radius:6px;">`).join("") +
           `</div>`
         : "";
 
@@ -383,6 +383,25 @@ async function cargarMapa() {
     estado.style.display = "block";
   }
 }
+
+// ── Visor de fotos ampliadas (importante para uso como evidencia:
+//    quien revise el reporte, incluida la FEMA, debe poder ver la
+//    foto completa, no solo la miniatura) ──────────────────────────
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightbox-img");
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("foto-miniatura")) {
+    lightboxImg.src = e.target.src;
+    lightbox.classList.add("show");
+  }
+});
+document.getElementById("lightbox-cerrar").addEventListener("click", () => {
+  lightbox.classList.remove("show");
+});
+lightbox.addEventListener("click", (e) => {
+  if (e.target === lightbox) lightbox.classList.remove("show");
+});
 
 function obtenerFotos(reporte) {
   if (Array.isArray(reporte.fotos_base64) && reporte.fotos_base64.length) {

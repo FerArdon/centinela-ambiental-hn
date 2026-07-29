@@ -1,4 +1,4 @@
-const CACHE_NAME = "centinela-shell-v5";
+const CACHE_NAME = "centinela-shell-v6";
 const ARCHIVOS_CASCARON = [
   "./",
   "./index.html",
