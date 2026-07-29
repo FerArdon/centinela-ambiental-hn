@@ -176,6 +176,16 @@
   }
   #lista-reportes .reporte-item b { color: var(--verde-oscuro); }
   #mapa-estado { text-align: center; color: var(--gris); font-size: 0.85rem; padding: 20px; }
+
+  #instalar {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  #instalar ol { padding-left: 20px; }
+  #instalar li { margin-bottom: 10px; font-size: 0.9rem; }
+  #instalar .plataforma { font-weight: 700; color: var(--verde-oscuro); margin-top: 16px; }
+  #btn-ir-reportar { background: var(--verde); color: white; }
 </style>
 </head>
 <body>
@@ -292,6 +302,30 @@
 </div>
 
 </main>
+
+<section id="instalar" class="card">
+  <h2>📲 Cómo instalarla en tu celular</h2>
+
+  <p class="plataforma">Android (Chrome)</p>
+  <ol>
+    <li>Abre este enlace en Chrome: <a href="https://ferardon.github.io/centinela-ambiental-hn/">ferardon.github.io/centinela-ambiental-hn</a></li>
+    <li>Toca el menú (⋮, arriba a la derecha) y elige <b>"Instalar app"</b> o <b>"Agregar a pantalla de inicio"</b>.</li>
+    <li>Confirma — queda un ícono en tu celular que abre la app directo.</li>
+  </ol>
+
+  <p class="plataforma">iPhone (Safari)</p>
+  <ol>
+    <li>Abre el mismo enlace en Safari.</li>
+    <li>Toca el ícono de compartir 📤 (abajo o arriba, según el modelo).</li>
+    <li>Elige <b>"Agregar a Inicio"</b> y confirma.</li>
+  </ol>
+
+  <p style="font-size:0.85rem; color:var(--gris);">
+    Una vez instalada, puedes usarla sin internet: tu reporte se guarda en el teléfono y se envía solo cuando vuelva la señal.
+  </p>
+
+  <button id="btn-ir-reportar" type="button">📥 Ir a Registrar una Denuncia</button>
+</section>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script type="module" src="app.js"></script>

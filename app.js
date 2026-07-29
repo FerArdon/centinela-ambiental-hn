@@ -255,6 +255,20 @@ function activarPestana(nombre) {
 tabReportar.addEventListener("click", () => activarPestana("reportar"));
 tabMapa.addEventListener("click", () => activarPestana("mapa"));
 
+const btnIrReportar = document.getElementById("btn-ir-reportar");
+if (btnIrReportar) {
+  btnIrReportar.addEventListener("click", () => {
+    activarPestana("reportar");
+    document.getElementById("form-hallazgo").scrollIntoView({ behavior: "smooth" });
+  });
+}
+
+// Si alguien llega directo al link con #instalar, que se vea esa seccion
+// (ya esta siempre visible al final de la pagina, esto solo hace scroll).
+if (window.location.hash === "#instalar") {
+  document.getElementById("instalar")?.scrollIntoView();
+}
+
 const COLORES_UICN = {
   "LC (Leve)": "#22c55e",
   "VU (Vulnerable)": "#eab308",
