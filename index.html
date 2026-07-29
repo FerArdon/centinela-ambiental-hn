@@ -90,7 +90,15 @@
   .radio-group input { accent-color: var(--verde); width: 18px; height: 18px; flex-shrink: 0; }
   .radio-group label.checked { border-color: var(--verde-claro); background: #f0fdf4; }
 
-  #foto-preview { max-width: 100%; border-radius: 8px; margin-top: 10px; display: none; }
+  #fotos-preview { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  #fotos-preview .miniatura { position: relative; width: 90px; height: 90px; }
+  #fotos-preview .miniatura img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+  #fotos-preview .miniatura button {
+    position: absolute; top: -6px; right: -6px;
+    width: 22px; height: 22px; padding: 0;
+    border-radius: 50%; background: #ef4444; color: white;
+    font-size: 0.8rem; line-height: 1;
+  }
 
   button {
     width: 100%;
@@ -232,9 +240,9 @@
       <label for="descripcion">Descríbelo con tus propias palabras</label>
       <textarea id="descripcion" required placeholder="¿Qué observaste?"></textarea>
 
-      <label for="foto">Foto del hallazgo (opcional)</label>
-      <input type="file" id="foto" accept="image/*" capture="environment">
-      <img id="foto-preview" alt="Vista previa">
+      <label for="foto">Fotos del hallazgo (opcional, máximo 3)</label>
+      <input type="file" id="foto" accept="image/*" capture="environment" multiple>
+      <div id="fotos-preview"></div>
     </div>
 
     <div class="card">

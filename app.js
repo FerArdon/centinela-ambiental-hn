@@ -101,18 +101,38 @@ document.getElementById("btn-ubicacion").addEventListener("click", () => {
   );
 });
 
-// ── Foto: vista previa + compresión a JPEG pequeño (para que quepa
-//    dentro del límite de 1MB de un documento de Firestore, y para
-//    no gastar los datos móviles de quien reporta) ──────────────
-let fotoBase64 = null;
+// ── Fotos (hasta 3): vista previa + compresión a JPEG pequeño (para
+//    que quepan dentro del límite de 1MB de un documento de Firestore,
+//    y para no gastar los datos móviles de quien reporta) ──────────
+const MAX_FOTOS = 3;
+let fotosBase64 = [];
+
 document.getElementById("foto").addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) { fotoBase64 = null; return; }
-  fotoBase64 = await comprimirImagen(file, 900, 0.6);
-  const preview = document.getElementById("foto-preview");
-  preview.src = fotoBase64;
-  preview.style.display = "block";
+  const archivos = Array.from(e.target.files).slice(0, MAX_FOTOS - fotosBase64.length);
+  for (const file of archivos) {
+    if (fotosBase64.length >= MAX_FOTOS) break;
+    const comprimida = await comprimirImagen(file, 700, 0.55);
+    fotosBase64.push(comprimida);
+  }
+  e.target.value = ""; // permite volver a elegir sin que el navegador ignore el cambio
+  renderizarMiniaturas();
 });
+
+function renderizarMiniaturas() {
+  const cont = document.getElementById("fotos-preview");
+  cont.innerHTML = "";
+  fotosBase64.forEach((src, i) => {
+    const div = document.createElement("div");
+    div.className = "miniatura";
+    div.innerHTML = `<img src="${src}" alt="Foto ${i + 1}"><button type="button" data-i="${i}">✕</button>`;
+    div.querySelector("button").addEventListener("click", () => {
+      fotosBase64.splice(i, 1);
+      renderizarMiniaturas();
+    });
+    cont.appendChild(div);
+  });
+  document.getElementById("foto").disabled = fotosBase64.length >= MAX_FOTOS;
+}
 
 function comprimirImagen(file, maxAncho, calidad) {
   return new Promise((resolve, reject) => {
@@ -176,7 +196,7 @@ form.addEventListener("submit", async (e) => {
     latitud: ubicacion ? ubicacion.lat : latDepto,
     longitud: ubicacion ? ubicacion.lon : lonDepto,
     ubicacion_gps: !!ubicacion,
-    foto_base64: fotoBase64,
+    fotos_base64: fotosBase64,
     creado_en: serverTimestamp(),
     creado_en_dispositivo: new Date().toISOString(),
     estado: "Abierto",
@@ -214,9 +234,9 @@ function mostrarResultado(igd, uicn, enviadoYa) {
 
 document.getElementById("btn-nuevo").addEventListener("click", () => {
   form.reset();
-  fotoBase64 = null;
+  fotosBase64 = [];
+  renderizarMiniaturas();
   ubicacion = null;
-  document.getElementById("foto-preview").style.display = "none";
   document.getElementById("ubicacion-estado").textContent =
     "No se ha capturado ubicación GPS todavía (opcional, pero recomendado).";
   document.getElementById("resultado").classList.remove("show");
