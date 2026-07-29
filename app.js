@@ -5,6 +5,10 @@ import {
   persistentSingleTabManager,
   collection,
   addDoc,
+  getDocs,
+  query,
+  orderBy,
+  limit,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -224,3 +228,117 @@ document.getElementById("btn-nuevo").addEventListener("click", () => {
   crearRadios("grupo-area", AREA_PROTEGIDA_PUNTOS, "area");
   crearRadios("grupo-reincidencia", REINCIDENCIA_PUNTOS, "reincidencia");
 });
+
+// ── Pestañas: Reportar / Ver Mapa ──────────────────────────────────
+const tabReportar = document.getElementById("tab-reportar");
+const tabMapa = document.getElementById("tab-mapa");
+const vistaReportar = document.getElementById("vista-reportar");
+const vistaMapa = document.getElementById("vista-mapa");
+let mapaCargado = false;
+let mapaLeaflet = null;
+
+function activarPestana(nombre) {
+  const esReportar = nombre === "reportar";
+  tabReportar.classList.toggle("activo", esReportar);
+  tabMapa.classList.toggle("activo", !esReportar);
+  vistaReportar.classList.toggle("activa", esReportar);
+  vistaMapa.classList.toggle("activa", !esReportar);
+  if (!esReportar) {
+    // El mapa necesita medirse en un contenedor ya visible, y solo
+    // cargamos los datos de Firestore la primera vez que se abre.
+    setTimeout(() => {
+      if (mapaLeaflet) mapaLeaflet.invalidateSize();
+      if (!mapaCargado) cargarMapa();
+    }, 50);
+  }
+}
+tabReportar.addEventListener("click", () => activarPestana("reportar"));
+tabMapa.addEventListener("click", () => activarPestana("mapa"));
+
+const COLORES_UICN = {
+  "LC (Leve)": "#22c55e",
+  "VU (Vulnerable)": "#eab308",
+  "EN (En Peligro)": "#f97316",
+  "CR (En Peligro Crítico)": "#ef4444",
+  "CO (Colapsado)": "#111827",
+};
+
+async function cargarMapa() {
+  const estado = document.getElementById("mapa-estado");
+  const lista = document.getElementById("lista-reportes");
+
+  if (!navigator.onLine) {
+    estado.textContent = "⚠️ Sin conexión — no se puede cargar el mapa de reportes públicos ahora mismo (esta vista sí necesita internet, a diferencia del formulario).";
+    return;
+  }
+
+  try {
+    const q = query(collection(db, "hallazgos"), orderBy("creado_en_dispositivo", "desc"), limit(200));
+    const snap = await getDocs(q);
+    mapaCargado = true;
+
+    if (snap.empty) {
+      estado.textContent = "Todavía no hay reportes públicos. ¡Sé el primero en registrar uno!";
+      return;
+    }
+    estado.style.display = "none";
+
+    mapaLeaflet = L.map("mapa").setView([14.8, -86.5], 7);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap",
+      maxZoom: 18,
+    }).addTo(mapaLeaflet);
+
+    const reportes = [];
+    snap.forEach((d) => reportes.push(d.data()));
+
+    // KPIs
+    document.getElementById("kpi-total").textContent = reportes.length;
+    const conteoPilar = {};
+    let sumaIGD = 0;
+    reportes.forEach((r) => {
+      conteoPilar[r.pilar] = (conteoPilar[r.pilar] || 0) + 1;
+      sumaIGD += r.igd || 0;
+    });
+    const pilarFrecuente = Object.entries(conteoPilar).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
+    document.getElementById("kpi-frecuente").textContent = pilarFrecuente;
+    document.getElementById("kpi-promedio").textContent = (sumaIGD / reportes.length).toFixed(1);
+
+    // Marcadores + lista
+    lista.innerHTML = "";
+    reportes.forEach((r) => {
+      if (typeof r.latitud !== "number" || typeof r.longitud !== "number") return;
+      const color = COLORES_UICN[r.uicn] || "#3b82f6";
+      L.circleMarker([r.latitud, r.longitud], {
+        radius: 9,
+        fillColor: color,
+        color: "#fff",
+        weight: 2,
+        fillOpacity: 0.9,
+      })
+        .bindPopup(
+          `<b>${escapeHtml(r.nombre_sitio || "Sin nombre")}</b><br>` +
+          `${escapeHtml(r.departamento || "")} · ${escapeHtml(r.pilar || "")}<br>` +
+          `IGD ${r.igd ?? "?"} — ${escapeHtml(r.uicn || "")}<br>` +
+          `<small>${escapeHtml((r.descripcion || "").slice(0, 100))}...</small>`
+        )
+        .addTo(mapaLeaflet);
+
+      const item = document.createElement("div");
+      item.className = "reporte-item";
+      item.innerHTML =
+        `<b>${escapeHtml(r.nombre_sitio || "Sin nombre")}</b> — ${escapeHtml(r.departamento || "")} · ${escapeHtml(r.pilar || "")}<br>` +
+        `IGD ${r.igd ?? "?"} (${escapeHtml(r.uicn || "")}) · reportado por ${escapeHtml(r.alias || "Anónimo")}`;
+      lista.appendChild(item);
+    });
+  } catch (err) {
+    estado.textContent = "No se pudieron cargar los reportes: " + err.message;
+    estado.style.display = "block";
+  }
+}
+
+function escapeHtml(texto) {
+  const div = document.createElement("div");
+  div.textContent = texto;
+  return div.innerHTML;
+}

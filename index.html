@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Centinela HN">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <style>
   :root {
     --verde-oscuro: #0d3822;
@@ -123,6 +124,58 @@
   }
 
   .error { color: #b91c1c; font-size: 0.85rem; margin-top: 8px; }
+
+  nav#tabs {
+    display: flex;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  nav#tabs button {
+    flex: 1;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 14px 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gris);
+    border-bottom: 3px solid transparent;
+  }
+  nav#tabs button.activo {
+    color: var(--verde-oscuro);
+    border-bottom-color: var(--verde);
+  }
+
+  .vista { display: none; }
+  .vista.activa { display: block; }
+
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi-card {
+    background: var(--verde-oscuro);
+    color: white;
+    padding: 12px 8px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .kpi-card .valor { font-size: 1.4rem; font-weight: 800; display: block; margin-top: 4px; }
+  .kpi-card .etiqueta { font-size: 0.65rem; opacity: 0.85; }
+
+  #mapa { width: 100%; height: 360px; border-radius: 14px; margin-bottom: 16px; }
+
+  .leyenda { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.75rem; margin-bottom: 14px; }
+  .leyenda span { display: flex; align-items: center; gap: 5px; }
+  .leyenda i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  #lista-reportes .reporte-item {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 10px 0;
+    font-size: 0.85rem;
+  }
+  #lista-reportes .reporte-item b { color: var(--verde-oscuro); }
+  #mapa-estado { text-align: center; color: var(--gris); font-size: 0.85rem; padding: 20px; }
 </style>
 </head>
 <body>
@@ -137,7 +190,14 @@
 
 <div id="status-bar"></div>
 
+<nav id="tabs">
+  <button type="button" id="tab-reportar" class="activo">📥 Reportar</button>
+  <button type="button" id="tab-mapa">🗺️ Ver Mapa</button>
+</nav>
+
 <main>
+
+<div id="vista-reportar" class="vista activa">
 
   <form id="form-hallazgo">
     <div class="card">
@@ -203,8 +263,37 @@
     <button id="btn-nuevo">Registrar otro hallazgo</button>
   </div>
 
+</div>
+
+<div id="vista-mapa" class="vista">
+
+  <div class="kpis">
+    <div class="kpi-card"><span class="etiqueta">Reportes</span><span class="valor" id="kpi-total">–</span></div>
+    <div class="kpi-card"><span class="etiqueta">Más frecuente</span><span class="valor" id="kpi-frecuente" style="font-size:0.95rem;">–</span></div>
+    <div class="kpi-card"><span class="etiqueta">IGD promedio</span><span class="valor" id="kpi-promedio">–</span></div>
+  </div>
+
+  <div class="leyenda">
+    <span><i style="background:#22c55e"></i> Leve</span>
+    <span><i style="background:#eab308"></i> Vulnerable</span>
+    <span><i style="background:#f97316"></i> En Peligro</span>
+    <span><i style="background:#ef4444"></i> Crítico</span>
+    <span><i style="background:#111827"></i> Colapsado</span>
+  </div>
+
+  <div id="mapa-estado">Cargando reportes...</div>
+  <div id="mapa"></div>
+
+  <div class="card">
+    <h2>📋 Últimos reportes</h2>
+    <div id="lista-reportes"></div>
+  </div>
+
+</div>
+
 </main>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script type="module" src="app.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
