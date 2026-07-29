@@ -343,6 +343,16 @@ async function cargarMapa() {
     reportes.forEach((r) => {
       if (typeof r.latitud !== "number" || typeof r.longitud !== "number") return;
       const color = COLORES_UICN[r.uicn] || "#3b82f6";
+
+      // Compatibilidad: reportes viejos guardaron "foto_base64" (una sola),
+      // los nuevos guardan "fotos_base64" (arreglo de hasta 3).
+      const fotos = obtenerFotos(r);
+      const fotosHtml = fotos.length
+        ? `<div style="display:flex;gap:4px;margin-top:6px;">` +
+          fotos.map((f) => `<img src="${f}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;">`).join("") +
+          `</div>`
+        : "";
+
       L.circleMarker([r.latitud, r.longitud], {
         radius: 9,
         fillColor: color,
@@ -354,7 +364,9 @@ async function cargarMapa() {
           `<b>${escapeHtml(r.nombre_sitio || "Sin nombre")}</b><br>` +
           `${escapeHtml(r.departamento || "")} · ${escapeHtml(r.pilar || "")}<br>` +
           `IGD ${r.igd ?? "?"} — ${escapeHtml(r.uicn || "")}<br>` +
-          `<small>${escapeHtml((r.descripcion || "").slice(0, 100))}...</small>`
+          `<small>${escapeHtml((r.descripcion || "").slice(0, 100))}...</small>` +
+          fotosHtml,
+          { maxWidth: 220 }
         )
         .addTo(mapaLeaflet);
 
@@ -362,13 +374,24 @@ async function cargarMapa() {
       item.className = "reporte-item";
       item.innerHTML =
         `<b>${escapeHtml(r.nombre_sitio || "Sin nombre")}</b> — ${escapeHtml(r.departamento || "")} · ${escapeHtml(r.pilar || "")}<br>` +
-        `IGD ${r.igd ?? "?"} (${escapeHtml(r.uicn || "")}) · reportado por ${escapeHtml(r.alias || "Anónimo")}`;
+        `IGD ${r.igd ?? "?"} (${escapeHtml(r.uicn || "")}) · reportado por ${escapeHtml(r.alias || "Anónimo")}` +
+        fotosHtml;
       lista.appendChild(item);
     });
   } catch (err) {
     estado.textContent = "No se pudieron cargar los reportes: " + err.message;
     estado.style.display = "block";
   }
+}
+
+function obtenerFotos(reporte) {
+  if (Array.isArray(reporte.fotos_base64) && reporte.fotos_base64.length) {
+    return reporte.fotos_base64;
+  }
+  if (typeof reporte.foto_base64 === "string" && reporte.foto_base64) {
+    return [reporte.foto_base64]; // reportes guardados antes de esta actualización
+  }
+  return [];
 }
 
 function escapeHtml(texto) {
