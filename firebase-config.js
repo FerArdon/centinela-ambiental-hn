@@ -2,7 +2,7 @@
 // Este archivo NO es secreto: la config web de Firebase está pensada para
 // ser pública: la seguridad real la dan las Reglas de Firestore, no esto.
 export const firebaseConfig = {
-  apiKey: "CLAVE_REVOCADA_REDACTADA",
+  apiKey: "AIzaSyB1G6r6oULaXWrO_2DiziWohVvR7SgxWsQ",
   authDomain: "centinela-ambiental-10451.firebaseapp.com",
   projectId: "centinela-ambiental-10451",
   storageBucket: "centinela-ambiental-10451.firebasestorage.app",
