@@ -238,6 +238,7 @@
   <div>
     <h1>Centinela Ambiental-HN</h1>
     <p>Reporta un daño ambiental — sin necesidad de dar tu nombre</p>
+    <p style="margin-top:4px; font-size:0.75rem; opacity:0.75;">👁️ <span id="counter-visitas">—</span> visitas al sitio</p>
   </div>
 </header>
 
@@ -373,10 +374,6 @@
   </p>
 
   <button id="btn-ir-reportar" type="button">📥 Ir a Registrar una Denuncia</button>
-
-  <p style="margin-top:14px;font-size:0.8rem;color:var(--gris);">
-    👁️ <span id="counter-visitas">—</span> visitas al sitio
-  </p>
 </section>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -388,8 +385,8 @@
     });
   }
 
-  // Contador de visitas gratuito (countapi.xyz)
-  fetch('https://api.countapi.xyz/hit/ferardon.github.io-centinela/visits')
+  // Contador de visitas gratuito (abacus)
+  fetch('https://abacus.jasoncameron.dev/hit/ferardon.github.io-centinela/visits')
     .then(r => r.json())
     .then(data => {
       var el = document.getElementById('counter-visitas');
