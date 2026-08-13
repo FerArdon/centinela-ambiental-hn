@@ -13,6 +13,16 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Centinela HN">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4GFB9HKYD8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-4GFB9HKYD8');
+</script>
+
 <style>
   :root {
     --verde-oscuro: #0d3822;
@@ -363,6 +373,10 @@
   </p>
 
   <button id="btn-ir-reportar" type="button">📥 Ir a Registrar una Denuncia</button>
+
+  <p style="margin-top:14px;font-size:0.8rem;color:var(--gris);">
+    👁️ <span id="counter-visitas">—</span> visitas al sitio
+  </p>
 </section>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -373,6 +387,23 @@
       navigator.serviceWorker.register('service-worker.js').catch(console.error);
     });
   }
+
+  // Contador de visitas gratuito (countapi.xyz)
+  fetch('https://api.countapi.xyz/hit/ferardon.github.io-centinela/visits')
+    .then(r => r.json())
+    .then(data => {
+      var el = document.getElementById('counter-visitas');
+      if (el) el.textContent = data.value ? data.value.toLocaleString('es-HN') : '1';
+    })
+    .catch(() => {
+      var el = document.getElementById('counter-visitas');
+      if (el) el.textContent = '—';
+    });
+
+  // Instalación real del PWA (GA4)
+  window.addEventListener('appinstalled', () => {
+    if (typeof gtag === 'function') gtag('event', 'pwa_install', {product: 'CentinelaAmbiental'});
+  });
 </script>
 </body>
 </html>
